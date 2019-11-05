@@ -10,17 +10,14 @@ defmodule DiscoveryApi.Repo.Migrations.UserUuidPrimaryKey do
     execute ~s|CREATE EXTENSION IF NOT EXISTS "uuid-ossp";|
 
     alter table(:users) do
-      add(:new_id, :uuid, default: fragment("uuid_generate_v4()"))
+      add :new_id, :uuid, default: fragment("uuid_generate_v4()")
     end
 
     alter table(:visualizations) do
       add :new_owner_id, :uuid
     end
 
-    flush()
-
-    from(visualization in Visualization, update: [set: [new_owner_id: fragment("select users.new_id from users where users.id = ?", visualization.owner_id)]])
-    |> Repo.update_all([])
+    load_new_owner_ids()
 
     alter table(:visualizations) do
       modify :new_owner_id, :uuid, null: false
@@ -35,9 +32,8 @@ defmodule DiscoveryApi.Repo.Migrations.UserUuidPrimaryKey do
       modify :new_id, :uuid, primary_key: true
     end
 
-    rename(table(:users), :new_id, to: :id)
-
-    rename(table(:visualizations), :new_owner_id, to: :owner_id)
+    rename table(:users), :new_id, to: :id
+    rename table(:visualizations), :new_owner_id, to: :owner_id
 
     alter table(:visualizations) do
       modify :owner_id, references(:users, type: :uuid)
@@ -46,17 +42,14 @@ defmodule DiscoveryApi.Repo.Migrations.UserUuidPrimaryKey do
 
   def down do
     alter table(:users) do
-      add(:new_id, :serial)
+      add :new_id, :serial
     end
 
     alter table(:visualizations) do
       add :new_owner_id, :integer
     end
 
-    flush()
-
-    from(visualization in Visualization, update: [set: [new_owner_id: fragment("select users.new_id from users where users.id = ?", visualization.owner_id)]])
-    |> Repo.update_all([])
+    load_new_owner_ids()
 
     alter table(:visualizations) do
       modify :new_owner_id, :integer, null: false
@@ -71,12 +64,19 @@ defmodule DiscoveryApi.Repo.Migrations.UserUuidPrimaryKey do
       modify :new_id, :integer, primary_key: true
     end
 
-    rename(table(:users), :new_id, to: :id)
-
-    rename(table(:visualizations), :new_owner_id, to: :owner_id)
+    rename table(:users), :new_id, to: :id
+    rename table(:visualizations), :new_owner_id, to: :owner_id
 
     alter table(:visualizations) do
-      modify :owner_id, references(:users, type: :integer)
+      modify :owner_id, references(:users)
     end
+  end
+
+  defp load_new_owner_ids() do
+    flush()
+    from(
+      visualization in Visualization,
+      update: [set: [new_owner_id: fragment("select users.new_id from users where users.id = ?", visualization.owner_id)]])
+    |> Repo.update_all([])
   end
 end
