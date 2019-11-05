@@ -9,10 +9,11 @@ defmodule DiscoveryApi.Schemas.Users.User do
 
   @primary_key {:id, Ecto.UUID, autogenerate: true}
 
+  @primary_key {:id, Ecto.UUID, autogenerate: true}
+
   schema "users" do
     field(:subject_id, :string)
     field(:email, :string)
-    field(:public_id, Ecto.UUID)
     has_many(:visualizations, Visualization, foreign_key: :owner_id)
     many_to_many(:organizations, Organization, join_through: DiscoveryApi.Schemas.Users.UserOrganization)
 
