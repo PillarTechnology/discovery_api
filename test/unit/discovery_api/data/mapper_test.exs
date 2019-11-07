@@ -30,6 +30,7 @@ defmodule DiscoveryApi.Data.MapperTest do
         [%{technical: %{private: true}}, [:accessLevel], "non-public"],
         [%{business: %{conformsToUri: nil}}, [:conformsToUri], "https://project-open-data.cio.gov/v1.1/schema/"],
         [%{business: %{conformsToUri: "overridden"}}, [:conformsToUri], "https://project-open-data.cio.gov/v1.1/schema/"],
+        #TODO: fix - appears that the SmartCity upgrade broke these tests. Need to verify how they should be fixed.
         [%{technical: %{sourceFormat: "json"}}, [:fileTypes], ["JSON"]],
         [%{technical: %{sourceFormat: "gtfs"}}, [:fileTypes], ["JSON"]],
         [%{technical: %{sourceFormat: "cSv"}}, [:fileTypes], ["CSV"]]

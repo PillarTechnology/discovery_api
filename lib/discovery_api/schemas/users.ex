@@ -5,7 +5,6 @@ defmodule DiscoveryApi.Schemas.Users do
   alias DiscoveryApi.Repo
   alias DiscoveryApi.Schemas.Users.User
   alias DiscoveryApi.Schemas.Organizations
-  alias DiscoveryApi.Schemas.Organizations.Organization
 
   def list_users do
     Repo.all(User)
@@ -50,6 +49,13 @@ defmodule DiscoveryApi.Schemas.Users do
       |> User.changeset_add_organization(organization)
       |> Repo.update()
     else
+      error -> error
+    end
+  end
+
+  def get_user_with_organizations(id, field \\ :id) do
+    case get_user(id, field) do
+      {:ok, user} -> {:ok, user |> Repo.preload(:organizations)}
       error -> error
     end
   end

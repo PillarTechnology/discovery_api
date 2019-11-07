@@ -106,7 +106,7 @@ defmodule DiscoveryApi.Schemas.UsersTest do
       assert {:ok, _} = Users.associate_with_organization(user.id, organization.id)
       assert {:ok, _} = Users.associate_with_organization(user.id, organization.id)
 
-      assert %User{organizations: [organization]} = Repo.get(User, user.id) |> Repo.preload(:organizations)
+      assert {:ok, %User{organizations: [^organization]}} = Users.get_user_with_organizations(user.id)
     end
 
     test "retains previously saved associated organizations", %{user: user, organization: organization} do
@@ -115,7 +115,7 @@ defmodule DiscoveryApi.Schemas.UsersTest do
       {:ok, other_organization} = Repo.insert(%Organization{id: "other-org-id", name: "my-other-org", title: "pretty sweet other org", ldap_dn: "my-other-dn"})
       assert {:ok, _} = Users.associate_with_organization(user.id, other_organization.id)
 
-      %User{organizations: organizations} = Repo.get(User, user.id) |> Repo.preload(:organizations)
+      {:ok, %User{organizations: organizations}} = Users.get_user_with_organizations(user.id)
       actual = MapSet.new(organizations)
       expected = MapSet.new([organization, other_organization])
       assert expected == actual

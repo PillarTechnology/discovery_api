@@ -17,13 +17,16 @@ defmodule DiscoveryApi.UserOrganizationAssociationTest do
     organization = Helper.create_persisted_organization()
     {:ok, user} = Users.create_or_update("unique|id", %{email: "thing@thing.thing"})
 
-    {:ok, association_event} = SmartCity.UserOrganizationAssociate.new(%{user_id: user.id, org_id: organization.id})
+    {:ok, association_event} = SmartCity.UserOrganizationAssociate.new(
+      %{user_id: user.id, org_id: organization.id}
+    )
 
     Brook.Event.send(DiscoveryApi.instance(), user_organization_associate(), :test, association_event)
 
+    # TODO: eventually needed?  Try upgrading Brook
     eventually(
       fn ->
-        assert {:ok, %User{organizations: [associated_org]}} = Users.get_user_with_organizations(user.id)
+        assert {:ok, %User{organizations: [associated_org]}} = Users.get_user_with_organizations(user.id) |> IO.inspect(label: "WAT")
         assert organization.id == associated_org.id
       end,
       500,
