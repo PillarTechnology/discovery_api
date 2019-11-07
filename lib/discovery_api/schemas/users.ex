@@ -4,6 +4,7 @@ defmodule DiscoveryApi.Schemas.Users do
   """
   alias DiscoveryApi.Repo
   alias DiscoveryApi.Schemas.Users.User
+  alias DiscoveryApi.Schemas.Organizations
   alias DiscoveryApi.Schemas.Organizations.Organization
 
   def list_users do
@@ -54,12 +55,15 @@ defmodule DiscoveryApi.Schemas.Users do
   end
 
   def associate_with_organization(user_id, organization_id) do
-    user = Repo.get(User, user_id)
-    org = Repo.get(Organization, organization_id)
+    with {:ok, user} <- get_user(user_id),
+         {:ok, organization} <- Organizations.get_organization(organization_id) do
+      user
+      |> Repo.preload(:organizations)
+      |> User.changeset_add_organization(organization)
+      |> Repo.update()
+    else
+      error -> error
+    end
 
-    user
-    |> Repo.preload(:organizations)
-    |> User.changeset_add_organization(org)
-    |> Repo.update()
   end
 end

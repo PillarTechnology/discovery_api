@@ -16,7 +16,7 @@ defmodule DiscoveryApiWeb.VisualizationController do
 
   def create(conn, %{"query" => query, "title" => title}) do
     with {:ok, user} <- Users.get_user(conn.assigns.current_user, :subject_id),
-         {:ok, visualization} <- Visualizations.create_visualization(%{query: query, title: title, owner: user}) do
+         {:ok, visualization} <- Visualizations.create(%{query: query, title: title, owner: user}) do
       conn
       |> put_status(:created)
       |> render(:visualization, %{visualization: visualization})

@@ -78,15 +78,28 @@ defmodule DiscoveryApi.Schemas.UsersTest do
   end
 
   describe "associate_with_organization/2" do
-
-    test "succeeds when user and organization exist" do
+    setup do
       {:ok, user} = Repo.insert(%User{subject_id: "predicate", email: "bob@e.mail"})
       {:ok, organization} = Repo.insert(%Organization{id: "org-id", name: "my-org", title: "pretty sweet org", ldap_dn: "my-dn"})
 
+      %{user: user, organization: organization}
+    end
+
+    test "succeeds when user and organization exist", %{user: user, organization: organization} do
       assert {:ok, saved} = Users.associate_with_organization(user.id, organization.id)
 
       assert %User{organizations: [organization]} = saved
       assert %User{organizations: [organization]} = Repo.get(User, user.id) |> Repo.preload(:organizations)
+    end
+
+    test "fails when user does not exist", %{organization: organization} do
+      user_id = Ecto.UUID.generate()
+      assert {:error, "User with id #{user_id} does not exist."} == Users.associate_with_organization(user_id, organization.id)
+    end
+
+    test "fails when organization does not exist", %{user: user} do
+      org_id = "nonexistent-org"
+      assert {:error, "Organization with id #{inspect(org_id)} does not exist."} == Users.associate_with_organization(user.id, org_id)
     end
   end
 end
