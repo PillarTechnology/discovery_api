@@ -9,8 +9,6 @@ defmodule DiscoveryApi.Schemas.Users.User do
 
   @primary_key {:id, Ecto.UUID, autogenerate: true}
 
-  @primary_key {:id, Ecto.UUID, autogenerate: true}
-
   schema "users" do
     field(:subject_id, :string)
     field(:email, :string)
@@ -31,6 +29,6 @@ defmodule DiscoveryApi.Schemas.Users.User do
   def changeset_add_organization(user, organization) do
     user
     |> change()
-    |> put_assoc(:organizations, [organization | user.organizations])
+    |> put_assoc(:organizations, [organization])
   end
 end

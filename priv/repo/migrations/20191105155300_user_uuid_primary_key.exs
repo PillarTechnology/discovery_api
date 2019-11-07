@@ -7,6 +7,8 @@ defmodule DiscoveryApi.Repo.Migrations.UserUuidPrimaryKey do
   alias DiscoveryApi.Schemas.Visualizations.Visualization
 
   def up do
+    # Alter 'users' to have a primary key that is a UUID rather than an auto-incrementing id
+    # Update 'owner_id' in 'visualizations' to use the new 'user' id
     execute ~s|CREATE EXTENSION IF NOT EXISTS "uuid-ossp";|
 
     alter table(:users) do
