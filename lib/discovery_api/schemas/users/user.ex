@@ -29,6 +29,6 @@ defmodule DiscoveryApi.Schemas.Users.User do
   def changeset_add_organization(user, organization) do
     user
     |> change()
-    |> put_assoc(:organizations, [organization])
+    |> put_assoc(:organizations, [organization | user.organizations])
   end
 end

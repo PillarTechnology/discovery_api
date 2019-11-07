@@ -101,5 +101,24 @@ defmodule DiscoveryApi.Schemas.UsersTest do
       org_id = "nonexistent-org"
       assert {:error, "Organization with id #{inspect(org_id)} does not exist."} == Users.associate_with_organization(user.id, org_id)
     end
+
+    test "does not add the same organization more than once", %{user: user, organization: organization} do
+      assert {:ok, _} = Users.associate_with_organization(user.id, organization.id)
+      assert {:ok, _} = Users.associate_with_organization(user.id, organization.id)
+
+      assert %User{organizations: [organization]} = Repo.get(User, user.id) |> Repo.preload(:organizations)
+    end
+
+    test "retains previously saved associated organizations", %{user: user, organization: organization} do
+      assert {:ok, _} = Users.associate_with_organization(user.id, organization.id)
+
+      {:ok, other_organization} = Repo.insert(%Organization{id: "other-org-id", name: "my-other-org", title: "pretty sweet other org", ldap_dn: "my-other-dn"})
+      assert {:ok, _} = Users.associate_with_organization(user.id, other_organization.id)
+
+      %User{organizations: organizations} = Repo.get(User, user.id) |> Repo.preload(:organizations)
+      actual = MapSet.new(organizations)
+      expected = MapSet.new([organization, other_organization])
+      assert expected == actual
+    end
   end
 end
