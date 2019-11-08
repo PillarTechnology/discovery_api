@@ -7,6 +7,7 @@ defmodule DiscoveryApiWeb.VisualizationControllerTest do
   alias DiscoveryApi.Schemas.Visualizations
   alias DiscoveryApi.Schemas.Visualizations.Visualization
   alias DiscoveryApi.Auth.Auth0.CachedJWKS
+  alias DiscoveryApi.Services.PrestoService
 
   @valid_jwt AuthHelper.valid_jwt()
   @valid_jwt_subject AuthHelper.valid_jwt_sub()
@@ -20,8 +21,16 @@ defmodule DiscoveryApiWeb.VisualizationControllerTest do
 
     really_far_in_the_future = 3_000_000_000_000
     AuthHelper.set_allowed_guardian_drift(really_far_in_the_future)
-    Application.put_env(:discovery_api, :user_info_endpoint, "http://localhost:#{bypass.port}/userinfo")
-    Bypass.stub(bypass, "GET", "/userinfo", fn conn -> Plug.Conn.resp(conn, :ok, @user_info_body) end)
+
+    Application.put_env(
+      :discovery_api,
+      :user_info_endpoint,
+      "http://localhost:#{bypass.port}/userinfo"
+    )
+
+    Bypass.stub(bypass, "GET", "/userinfo", fn conn ->
+      Plug.Conn.resp(conn, :ok, @user_info_body)
+    end)
 
     :ok
   end
@@ -51,7 +60,9 @@ defmodule DiscoveryApiWeb.VisualizationControllerTest do
              } = body
     end
 
-    test "returns BAD REQUEST for valid bearer token but missing user for visualization setup", %{conn: conn} do
+    test "returns BAD REQUEST for valid bearer token but missing user for visualization setup", %{
+      conn: conn
+    } do
       query = "select * from stuff"
       title = "My title"
 
@@ -64,7 +75,8 @@ defmodule DiscoveryApiWeb.VisualizationControllerTest do
       |> response(400)
     end
 
-    test "returns BAD REQUEST for valid bearer token and but missing user for visualization setup", %{conn: conn} do
+    test "returns BAD REQUEST for valid bearer token and but missing user for visualization setup",
+         %{conn: conn} do
       query = "select * from stuff"
       title = "My title"
 
@@ -111,8 +123,14 @@ defmodule DiscoveryApiWeb.VisualizationControllerTest do
       query = "select * from stuff"
       title = "My title"
 
-      allow(Users.get_user(@valid_jwt_subject, :subject_id), return: {:ok, :valid_user})
-      allow(Visualizations.get_visualization(id), return: {:ok, %Visualization{public_id: id, query: query, title: title}})
+      allow(Users.get_user(@valid_jwt_subject), return: {:ok, :valid_user})
+
+      allow(Visualizations.get_visualization(id),
+        return: {:ok, %Visualization{public_id: id, query: query, title: title}}
+      )
+
+      allow(Users.get_user(@valid_jwt_subject), return: {:ok, :valid_user})
+      allow(DiscoveryApiWeb.Utilities.AuthUtils.authorized_to_query?(query, any()), return: true)
 
       body =
         conn
@@ -127,6 +145,39 @@ defmodule DiscoveryApiWeb.VisualizationControllerTest do
                "title" => ^title,
                "id" => ^id
              } = body
+    end
+
+    test "returns NOT FOUND when visualization cannot be executed by the user", %{conn: conn} do
+      id = "abcdefg"
+      query = "select * from private__dataset"
+      title = "My title"
+
+      private_dataset =
+        DiscoveryApi.Test.Helper.sample_model(%{
+          private: true,
+          systemName: "private__dataset"
+        })
+
+      allow(DiscoveryApi.Data.Model.get_all(), return: [private_dataset], meck_options: [:passthrough])
+
+      allow(Users.get_user(@valid_jwt_subject), return: {:ok, :valid_user})
+      allow(DiscoveryApi.Services.PaddleService.get_members(any()), return: [:a_different_valid_user])
+      allow(PrestoService.is_select_statement?(query), return: true)
+      allow(PrestoService.get_affected_tables(query), return: {:ok, ["private__dataset"]})
+
+      allow(Visualizations.get_visualization(id),
+        return: {:ok, %Visualization{public_id: id, query: query, title: title}}
+      )
+
+      body =
+        conn
+        |> put_req_header("authorization", "Bearer #{@valid_jwt}")
+        |> put_req_header("content-type", "application/json")
+        |> get("/api/v1/visualization/#{id}")
+        |> response(404)
+        |> Jason.decode!()
+
+      assert %{"message" => "Not Found"} == body
     end
 
     test "returns NOT FOUND when visualization cannot be fetched", %{conn: conn} do
