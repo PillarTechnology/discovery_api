@@ -123,14 +123,14 @@ defmodule DiscoveryApiWeb.VisualizationControllerTest do
       query = "select * from stuff"
       title = "My title"
 
-      allow(Users.get_user(@valid_jwt_subject), return: {:ok, :valid_user})
+      allow(Users.get_user(@valid_jwt_subject), return: {:ok, :valid_user}, meck_options: [:passthrough])
 
       allow(Visualizations.get_visualization(id),
         return: {:ok, %Visualization{public_id: id, query: query, title: title}}
       )
 
       allow(Users.get_user(@valid_jwt_subject), return: {:ok, :valid_user})
-      allow(DiscoveryApiWeb.Utilities.AuthUtils.authorized_to_query?(query, any()), return: true)
+      allow(DiscoveryApiWeb.Utilities.AuthUtils.authorized_to_query?(query, any(), any()), return: true)
 
       body =
         conn
@@ -155,13 +155,17 @@ defmodule DiscoveryApiWeb.VisualizationControllerTest do
       private_dataset =
         DiscoveryApi.Test.Helper.sample_model(%{
           private: true,
-          systemName: "private__dataset"
+          systemName: "private__dataset",
+          organizationDetails: %{
+            id: 1,
+            dn: :fix_me
+          }
         })
 
       allow(DiscoveryApi.Data.Model.get_all(), return: [private_dataset], meck_options: [:passthrough])
 
-      allow(Users.get_user(@valid_jwt_subject), return: {:ok, :valid_user})
-      allow(DiscoveryApi.Services.PaddleService.get_members(any()), return: [:a_different_valid_user])
+      allow(Users.get_user(@valid_jwt_subject), return: {:ok, :valid_user}, meck_options: [:passthrough])
+      allow(Users.get_user_with_organizations(@valid_jwt_subject), return: {:ok, %{organizations: [%{id: 2}]}}, meck_options: [:passthrough])
       allow(PrestoService.is_select_statement?(query), return: true)
       allow(PrestoService.get_affected_tables(query), return: {:ok, ["private__dataset"]})
 

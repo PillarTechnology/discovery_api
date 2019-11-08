@@ -112,7 +112,9 @@ defmodule DiscoveryApi.Schemas.UsersTest do
     test "retains previously saved associated organizations", %{user: user, organization: organization} do
       assert {:ok, _} = Users.associate_with_organization(user.id, organization.id)
 
-      {:ok, other_organization} = Repo.insert(%Organization{id: "other-org-id", name: "my-other-org", title: "pretty sweet other org", ldap_dn: "my-other-dn"})
+      {:ok, other_organization} =
+        Repo.insert(%Organization{id: "other-org-id", name: "my-other-org", title: "pretty sweet other org", ldap_dn: "my-other-dn"})
+
       assert {:ok, _} = Users.associate_with_organization(user.id, other_organization.id)
 
       {:ok, %User{organizations: organizations}} = Users.get_user_with_organizations(user.id)
