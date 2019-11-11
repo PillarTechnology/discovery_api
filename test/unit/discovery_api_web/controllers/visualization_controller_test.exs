@@ -43,7 +43,7 @@ defmodule DiscoveryApiWeb.VisualizationControllerTest do
 
       allow(Users.get_user(@valid_jwt_subject, :subject_id), return: {:ok, :valid_user})
 
-      allow(Visualizations.create(any()), return: {:ok, %Visualization{public_id: generated_public_id, query: query, title: title}})
+      allow(Visualizations.create_visualization(any()), return: {:ok, %Visualization{public_id: generated_public_id, query: query, title: title}})
 
       body =
         conn
@@ -97,9 +97,9 @@ defmodule DiscoveryApiWeb.VisualizationControllerTest do
       title = "query title"
 
       allow(Users.get_user(@valid_jwt_subject, :subject_id), return: {:ok, :valid_user})
-      allow(Visualizations.get_visualization(any()), return: {:ok, %Visualization{public_id: id, query: query, title: title}})
+      allow(Visualizations.get_visualization_by_id(any()), return: {:ok, %Visualization{public_id: id, query: query, title: title}})
       allow(Visualization.changeset(any(), any()), return: {:ok, %Visualization{public_id: id, query: query, title: title}})
-      allow(Visualizations.update(any(), any()), return: {:ok, %Visualization{public_id: id, query: query, title: title}})
+      allow(Visualizations.update_visualization_by_id(any(), any(), any()), return: {:ok, %Visualization{public_id: id, query: query, title: title}})
 
       body =
         conn
@@ -125,7 +125,7 @@ defmodule DiscoveryApiWeb.VisualizationControllerTest do
 
       allow(Users.get_user(@valid_jwt_subject), return: {:ok, :valid_user}, meck_options: [:passthrough])
 
-      allow(Visualizations.get_visualization(id),
+      allow(Visualizations.get_visualization_by_id(id),
         return: {:ok, %Visualization{public_id: id, query: query, title: title}}
       )
 
@@ -165,11 +165,13 @@ defmodule DiscoveryApiWeb.VisualizationControllerTest do
       allow(DiscoveryApi.Data.Model.get_all(), return: [private_dataset], meck_options: [:passthrough])
 
       allow(Users.get_user(@valid_jwt_subject), return: {:ok, :valid_user}, meck_options: [:passthrough])
-      allow(Users.get_user_with_organizations(@valid_jwt_subject), return: {:ok, %{organizations: [%{id: 2}]}}, meck_options: [:passthrough])
+
+      allow(Users.get_user_with_organizations(@valid_jwt_subject, :subject_id), return: {:ok, %{organizations: [%{id: 2}]}}, meck_options: [:passthrough])
+
       allow(PrestoService.is_select_statement?(query), return: true)
       allow(PrestoService.get_affected_tables(query), return: {:ok, ["private__dataset"]})
 
-      allow(Visualizations.get_visualization(id),
+      allow(Visualizations.get_visualization_by_id(id),
         return: {:ok, %Visualization{public_id: id, query: query, title: title}}
       )
 
@@ -189,7 +191,7 @@ defmodule DiscoveryApiWeb.VisualizationControllerTest do
 
       allow(Users.get_user(@valid_jwt_subject, :subject_id), return: {:ok, :valid_user})
 
-      allow(Visualizations.get_visualization(id), return: {:error, "no such visualization"})
+      allow(Visualizations.get_visualization_by_id(id), return: {:error, "no such visualization"})
 
       body =
         conn

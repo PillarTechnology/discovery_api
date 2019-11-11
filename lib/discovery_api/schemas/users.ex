@@ -52,23 +52,4 @@ defmodule DiscoveryApi.Schemas.Users do
       error -> error
     end
   end
-
-  def get_user_with_organizations(id, field \\ :id) do
-    case get_user(id, field) do
-      {:ok, user} -> {:ok, user |> Repo.preload(:organizations)}
-      error -> error
-    end
-  end
-
-  def associate_with_organization(user_id, organization_id) do
-    with {:ok, user} <- get_user(user_id),
-         {:ok, organization} <- Organizations.get_organization(organization_id) do
-      user
-      |> Repo.preload(:organizations)
-      |> User.changeset_add_organization(organization)
-      |> Repo.update()
-    else
-      error -> error
-    end
-  end
 end

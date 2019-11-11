@@ -12,7 +12,7 @@ defmodule DiscoveryApiWeb.Utilities.EctoAccessUtils do
     |> Users.get_user_with_organizations(:subject_id)
     |> elem(1)
     |> Map.get(:organizations, [])
-    |> Enum.any?(fn %{id: user_org_id} -> (user_org_id == id) end)
+    |> Enum.any?(fn %{id: user_org_id} -> user_org_id == id end)
   end
 
   def has_access?(_base, _case), do: false

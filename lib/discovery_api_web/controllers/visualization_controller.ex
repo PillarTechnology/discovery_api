@@ -10,15 +10,7 @@ defmodule DiscoveryApiWeb.VisualizationController do
   plug(:accepts, DiscoveryApiWeb.VisualizationView.accepted_formats())
 
   def show(conn, %{"id" => id}) do
-<<<<<<< HEAD
-    case Visualizations.get_visualization_by_id(id) do
-      {:error, _} -> render_error(conn, 404, "Not Found")
-      {:ok, visualization} -> render(conn, :visualization, %{visualization: visualization})
-    end
-  end
-
-=======
-    with {:ok, %{query: query} = visualization} <- Visualizations.get_visualization(id),
+    with {:ok, %{query: query} = visualization} <- Visualizations.get_visualization_by_id(id),
          user <- Map.get(conn.assigns, :current_user, :anonymous_user),
          true <- AuthUtils.authorized_to_query?(query, user, EctoAccessUtils) do
       render(conn, :visualization, %{visualization: visualization})
@@ -32,10 +24,9 @@ defmodule DiscoveryApiWeb.VisualizationController do
 
   # defp render_authorized_visualization(conn, {:ok, visualization}), do: render(conn, :visualization, %{visualization: visualization})
 
->>>>>>> Router, ldap auth, and tests
   def create(conn, %{"query" => query, "title" => title}) do
     with {:ok, user} <- Users.get_user(conn.assigns.current_user, :subject_id),
-         {:ok, visualization} <- Visualizations.create(%{query: query, title: title, owner: user}) do
+         {:ok, visualization} <- Visualizations.create_visualization(%{query: query, title: title, owner: user}) do
       conn
       |> put_status(:created)
       |> render(:visualization, %{visualization: visualization})
