@@ -19,7 +19,7 @@ defmodule DiscoveryApiWeb.VisualizationController do
 
 =======
     with {:ok, %{query: query} = visualization} <- Visualizations.get_visualization(id),
-         user <- Map.get(conn.assigns, :current_user, :anonymous_user) |> IO.inspect(),
+         user <- Map.get(conn.assigns, :current_user, :anonymous_user),
          true <- AuthUtils.authorized_to_query?(query, user, EctoAccessUtils) do
       render(conn, :visualization, %{visualization: visualization})
     else

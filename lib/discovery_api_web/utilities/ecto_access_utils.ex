@@ -9,11 +9,10 @@ defmodule DiscoveryApiWeb.Utilities.EctoAccessUtils do
 
   def has_access?(%Model{private: true, organizationDetails: %{id: id}} = _dataset, username) do
     username
-    |> Users.get_user_with_organizations()
+    |> Users.get_user_with_organizations(:subject_id)
     |> elem(1)
     |> Map.get(:organizations, [])
     |> Enum.any?(fn %{id: user_org_id} -> (user_org_id == id) end)
-    |> IO.inspect(label: "auth_utils.ex:48")
   end
 
   def has_access?(_base, _case), do: false

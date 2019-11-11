@@ -3,6 +3,7 @@ defmodule DiscoveryApiWeb.Utilities.AuthUtilsTest do
   use Placebo
 
   alias DiscoveryApiWeb.Utilities.AuthUtils
+  alias DiscoveryApiWeb.Utilities.LdapAccessUtils
   alias DiscoveryApi.Services.{PrestoService, PaddleService}
   alias DiscoveryApi.Data.Model
   alias DiscoveryApi.Test.Helper
@@ -12,7 +13,7 @@ defmodule DiscoveryApiWeb.Utilities.AuthUtilsTest do
       allow PaddleWrapper.authenticate(any(), any()), return: :doesnt_matter
       model = Helper.sample_model(%{private: true})
 
-      result = AuthUtils.has_access?(model, nil)
+      result = LdapAccessUtils.has_access?(model, nil)
 
       assert false == result
       refute_called PaddleWrapper.authenticate(any(), any())
