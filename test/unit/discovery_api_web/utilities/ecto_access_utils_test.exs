@@ -8,31 +8,42 @@ defmodule DiscoveryApiWeb.Utilities.EctoAccessUtilsTest do
   alias DiscoveryApiWeb.Utilities.LdapAccessUtils
   alias DiscoveryApi.Services.{PrestoService, PaddleService}
   alias DiscoveryApi.Data.Model
+  alias DiscoveryApi.Schemas.Users
   alias DiscoveryApi.Test.Helper
 
-  setup do
-    pub_model = Helper.sample_model(%{private: false})
-    priv_model = Helper.sample_model(%{private: true})
+  @pub_model Helper.sample_model(%{private: false})
+  @priv_model Helper.sample_model(%{private: true})
 
+  setup do
     allow(Users.get_user_with_organizations("bob", :subject_id),
       return: {:ok, %{organizations: [%{id: "notrealid"}]}}
     )
 
     allow(Users.get_user_with_organizations("steve", :subject_id),
-      return: {:ok, %{organizations: [%{id: priv_model.organizationDetails.id}]}}
+      return: {:ok, %{organizations: [%{id: @priv_model.organizationDetails.id}]}}
     )
 
-    {:ok, {pub_model, priv_model}}
+    :ok
   end
 
-  data_test "has_access?/2 with no user logged in", {pub_model, priv_model} do
+  data_test "has_access?/2 with public datasets" do
+    assert EctoAccessUtils.has_access?(@pub_model, user) == expected
+
     where([
-      [:model, :user, :expected],
-      [pub_model, nil, true],
-      [priv_model, nil, false],
-      [pub_model, "bob", true],
-      [priv_model, "bob", false],
-      [priv_model, "steve", true]
+      [:user, :expected],
+      [nil, true],
+      ["bob", true],
+    ])
+  end
+
+  data_test "has_access?/2 with private datasets" do
+    assert EctoAccessUtils.has_access?(@priv_model, user) == expected
+
+    where([
+      [:user, :expected],
+      [nil, false],
+      ["bob", false],
+      ["steve", true]
     ])
   end
 end

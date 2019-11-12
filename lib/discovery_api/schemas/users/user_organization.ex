@@ -1,4 +1,7 @@
 defmodule DiscoveryApi.Schemas.Users.UserOrganization do
+  @moduledoc """
+  Ecto schema respresentation of the User-Organization association.
+  """
 
   use Ecto.Schema
   alias DiscoveryApi.Schemas.Users.User

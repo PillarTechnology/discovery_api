@@ -3,6 +3,8 @@ defmodule DiscoveryApi.Auth.AuthTest do
   use Divo, services: [:"ecto-postgres", :ldap, :redis, :presto, :zookeeper, :kafka]
   use DiscoveryApi.DataCase
 
+  import ExUnit.CaptureLog
+
   alias DiscoveryApi.Data.Model
   alias DiscoveryApi.Test.Helper
   alias DiscoveryApi.Test.AuthHelper
@@ -386,14 +388,19 @@ defmodule DiscoveryApi.Auth.AuthTest do
       assert body.message == "Bad Request"
     end
 
-    test "GET /visualization/:id returns visualization when token is valid" do
-      log_valid_user_in()
-      visualization = create_visualization()
+    test "GET /visualization/:id returns visualization for public table when user is anonymous", %{public_model_that_belongs_to_org_1: model} do
+      # log_valid_user_in()
+      capture_log(fn ->
+        ~s|create table if not exists "#{model.systemName}" (id integer, name varchar)|
+        |> Prestige.execute()
+        |> Prestige.prefetch()
+      end)
+      visualization = create_visualization(model.systemName)
 
       %{status_code: status_code} =
-        get_with_authentication(
+      HTTPoison.get!(
           "localhost:4000/api/v1/visualization/#{visualization.public_id}",
-          AuthHelper.valid_jwt()
+          "Content-Type": "application/json"
         )
 
       assert status_code == 200
@@ -405,11 +412,11 @@ defmodule DiscoveryApi.Auth.AuthTest do
     AuthHelper.valid_jwt_sub()
   end
 
-  defp create_visualization() do
+  defp create_visualization(table_name \\ "table_name") do
     {:ok, owner} = Users.create_or_update("me|you", %{email: "bob@example.com"})
 
     {:ok, visualization} =
-      Visualizations.create_visualization(%{query: "select * from table_name", title: "My first visualization", owner: owner})
+      Visualizations.create_visualization(%{query: "select * from #{table_name}", title: "My first visualization", owner: owner})
 
     visualization
   end

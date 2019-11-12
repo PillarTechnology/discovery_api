@@ -59,7 +59,7 @@ defmodule DiscoveryApi.Test.Helper do
         "record_count" => Faker.random_between(1, 1000),
         "fields" => %{"one" => %{"count" => 1, "required" => false}}
       },
-      systemName: "shouldnot__benil"
+      systemName: "#{Faker.Lorem.word()}__#{Faker.Lorem.word()}"
     }
     |> Map.merge(values)
   end
