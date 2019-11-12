@@ -388,17 +388,20 @@ defmodule DiscoveryApi.Auth.AuthTest do
       assert body.message == "Bad Request"
     end
 
-    test "GET /visualization/:id returns visualization for public table when user is anonymous", %{public_model_that_belongs_to_org_1: model} do
+    test "GET /visualization/:id returns visualization for public table when user is anonymous", %{
+      public_model_that_belongs_to_org_1: model
+    } do
       # log_valid_user_in()
       capture_log(fn ->
         ~s|create table if not exists "#{model.systemName}" (id integer, name varchar)|
         |> Prestige.execute()
         |> Prestige.prefetch()
       end)
+
       visualization = create_visualization(model.systemName)
 
       %{status_code: status_code} =
-      HTTPoison.get!(
+        HTTPoison.get!(
           "localhost:4000/api/v1/visualization/#{visualization.public_id}",
           "Content-Type": "application/json"
         )

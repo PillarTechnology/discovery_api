@@ -32,7 +32,7 @@ defmodule DiscoveryApiWeb.Utilities.EctoAccessUtilsTest do
     where([
       [:user, :expected],
       [nil, true],
-      ["bob", true],
+      ["bob", true]
     ])
   end
 
