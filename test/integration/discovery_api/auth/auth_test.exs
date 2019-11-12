@@ -4,6 +4,7 @@ defmodule DiscoveryApi.Auth.AuthTest do
   use DiscoveryApi.DataCase
 
   import ExUnit.CaptureLog
+  import SmartCity.Event, only: [user_organization_associate: 0]
 
   alias DiscoveryApi.Data.Model
   alias DiscoveryApi.Test.Helper
@@ -391,7 +392,6 @@ defmodule DiscoveryApi.Auth.AuthTest do
     test "GET /visualization/:id returns visualization for public table when user is anonymous", %{
       public_model_that_belongs_to_org_1: model
     } do
-      # log_valid_user_in()
       capture_log(fn ->
         ~s|create table if not exists "#{model.systemName}" (id integer, name varchar)|
         |> Prestige.execute()
@@ -405,6 +405,30 @@ defmodule DiscoveryApi.Auth.AuthTest do
           "localhost:4000/api/v1/visualization/#{visualization.public_id}",
           "Content-Type": "application/json"
         )
+
+      assert status_code == 200
+    end
+
+    test "GET /visualization/:id returns visualization for private table when user has access", %{
+      private_model_that_belongs_to_org_1: model
+    } do
+      log_valid_user_in()
+
+      organization = Helper.create_persisted_organization()
+      {:ok, user} = Users.create_or_update(AuthHelper.valid_jwt_sub(), %{email: "thing@thing.thing"})
+      {:ok, association_event} = SmartCity.UserOrganizationAssociate.new(%{user_id: user.id, org_id: model.organizationDetails.id})
+      Brook.Event.send(DiscoveryApi.instance(), user_organization_associate(), :test, association_event)
+
+      capture_log(fn ->
+        ~s|create table if not exists "#{model.systemName}" (id integer, name varchar)|
+        |> Prestige.execute()
+        |> Prestige.prefetch()
+      end)
+
+      visualization = create_visualization(model.systemName)
+
+      %{status_code: status_code, body: body} =
+        get_with_authentication("localhost:4000/api/v1/visualization/#{visualization.public_id}", AuthHelper.valid_jwt())
 
       assert status_code == 200
     end
