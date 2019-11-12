@@ -7,7 +7,6 @@ defmodule DiscoveryApi.Auth.AuthTest do
   alias DiscoveryApi.Test.Helper
   alias DiscoveryApi.Test.AuthHelper
   alias DiscoveryApi.Schemas.Users
-  alias DiscoveryApi.Schemas.Users.User
   alias DiscoveryApi.Schemas.Visualizations
   alias DiscoveryApi.Repo
 
