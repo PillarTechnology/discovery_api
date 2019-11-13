@@ -5,9 +5,6 @@ defmodule DiscoveryApiWeb.Utilities.EctoAccessUtilsTest do
   import Checkov
 
   alias DiscoveryApiWeb.Utilities.EctoAccessUtils
-  alias DiscoveryApiWeb.Utilities.LdapAccessUtils
-  alias DiscoveryApi.Services.{PrestoService, PaddleService}
-  alias DiscoveryApi.Data.Model
   alias DiscoveryApi.Schemas.Users
   alias DiscoveryApi.Test.Helper
 

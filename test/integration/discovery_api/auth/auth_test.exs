@@ -436,7 +436,6 @@ defmodule DiscoveryApi.Auth.AuthTest do
     test "GET /visualization/:id returns not found for private table when user is anonymous", %{
       private_model_that_belongs_to_org_1: model
     } do
-
       capture_log(fn ->
         ~s|create table if not exists "#{model.systemName}" (id integer, name varchar)|
         |> Prestige.execute()

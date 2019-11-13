@@ -1,4 +1,7 @@
 defmodule DiscoveryApiWeb.Utilities.LdapAccessUtils do
+  @moduledoc """
+  This module is the implementation of the DiscoveryApiWeb.Utilities.AccessUtils behavior for LDAP
+  """
   @behaviour DiscoveryApiWeb.Utilities.AccessUtils
   alias DiscoveryApi.Data.Model
   alias DiscoveryApi.Services.PaddleService

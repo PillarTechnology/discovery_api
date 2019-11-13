@@ -12,17 +12,13 @@ defmodule DiscoveryApiWeb.VisualizationController do
   def show(conn, %{"id" => id}) do
     with {:ok, %{query: query} = visualization} <- Visualizations.get_visualization_by_id(id),
          user <- Map.get(conn.assigns, :current_user, :anonymous_user),
-         true <- AuthUtils.authorized_to_query?(query, user, EctoAccessUtils) do
+         true <- owns_visualization(visualization, user) || AuthUtils.authorized_to_query?(query, user, EctoAccessUtils) do
       render(conn, :visualization, %{visualization: visualization})
     else
       {:error, _} -> render_error(conn, 404, "Not Found")
       false -> render_error(conn, 404, "Not Found")
     end
   end
-
-  # defp render_authorized_visualization(conn, {:error, _}), do: render_error(conn, 404, "Not Found")
-
-  # defp render_authorized_visualization(conn, {:ok, visualization}), do: render(conn, :visualization, %{visualization: visualization})
 
   def create(conn, %{"query" => query, "title" => title}) do
     with {:ok, user} <- Users.get_user(conn.assigns.current_user, :subject_id),
@@ -42,6 +38,15 @@ defmodule DiscoveryApiWeb.VisualizationController do
     else
       _ ->
         render_error(conn, 400, "Bad Request")
+    end
+  end
+
+  defp owns_visualization(_visualization, :anonymous_user), do: false
+
+  defp owns_visualization(visualization, subject_id) do
+    case Users.get_user(subject_id, :subject_id) do
+      {:ok, user} -> user.id == visualization.owner_id
+      _ -> false
     end
   end
 end

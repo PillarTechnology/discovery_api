@@ -1,4 +1,7 @@
 defmodule DiscoveryApiWeb.Utilities.EctoAccessUtils do
+  @moduledoc """
+  This module is the implementation of the DiscoveryApiWeb.Utilities.AccessUtils behavior for auth rules stored in Ecto
+  """
   @behaviour DiscoveryApiWeb.Utilities.AccessUtils
   alias DiscoveryApi.Data.Model
   alias DiscoveryApi.Schemas.Users
