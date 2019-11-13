@@ -11,7 +11,7 @@ defmodule DiscoveryApiWeb.VisualizationController do
 
   def show(conn, %{"id" => id}) do
     with {:ok, %{query: query} = visualization} <- Visualizations.get_visualization_by_id(id),
-         user <- Map.get(conn.assigns, :current_user, :anonymous_user),
+         user <- Map.get(conn.assigns, :current_user, nil),
          true <- owns_visualization(visualization, user) || AuthUtils.authorized_to_query?(query, user, EctoAccessUtils) do
       render(conn, :visualization, %{visualization: visualization})
     else
@@ -41,7 +41,7 @@ defmodule DiscoveryApiWeb.VisualizationController do
     end
   end
 
-  defp owns_visualization(_visualization, :anonymous_user), do: false
+  defp owns_visualization(_visualization, nil), do: false
 
   defp owns_visualization(visualization, subject_id) do
     case Users.get_user(subject_id, :subject_id) do

@@ -10,7 +10,6 @@ defmodule DiscoveryApi.Auth.AuthTest do
   alias DiscoveryApi.Test.Helper
   alias DiscoveryApi.Test.AuthHelper
   alias DiscoveryApi.Schemas.Users
-  alias DiscoveryApi.Schemas.Users.User
   alias DiscoveryApi.Schemas.Visualizations
   alias DiscoveryApi.Repo
 
@@ -363,7 +362,7 @@ defmodule DiscoveryApi.Auth.AuthTest do
     end
 
     test "POST /visualization adds owner data to the newly created visualization" do
-      subject_id = log_valid_user_in()
+      {:ok, user} = Users.create_or_update(AuthHelper.valid_jwt_sub(), %{email: "thing@thing.thing"})
 
       %{status_code: status_code, body: body} =
         post_with_authentication(
@@ -374,7 +373,7 @@ defmodule DiscoveryApi.Auth.AuthTest do
 
       assert status_code == 201
       visualization = Visualizations.get_visualization_by_id(body.id) |> elem(1) |> Repo.preload(:owner)
-      assert visualization.owner.subject_id == subject_id
+      assert visualization.owner.subject_id == user.subject_id
     end
 
     test "POST /visualization returns 'bad request' when token is invalid" do
@@ -412,9 +411,6 @@ defmodule DiscoveryApi.Auth.AuthTest do
     test "GET /visualization/:id returns visualization for private table when user has access", %{
       private_model_that_belongs_to_org_1: model
     } do
-      log_valid_user_in()
-
-      organization = Helper.create_persisted_organization()
       {:ok, user} = Users.create_or_update(AuthHelper.valid_jwt_sub(), %{email: "thing@thing.thing"})
       {:ok, association_event} = SmartCity.UserOrganizationAssociate.new(%{user_id: user.id, org_id: model.organizationDetails.id})
       Brook.Event.send(DiscoveryApi.instance(), user_organization_associate(), :test, association_event)
@@ -427,7 +423,7 @@ defmodule DiscoveryApi.Auth.AuthTest do
 
       visualization = create_visualization(model.systemName)
 
-      %{status_code: status_code, body: body} =
+      %{status_code: status_code} =
         get_with_authentication("localhost:4000/api/v1/visualization/#{visualization.public_id}", AuthHelper.valid_jwt())
 
       assert status_code == 200
@@ -454,12 +450,7 @@ defmodule DiscoveryApi.Auth.AuthTest do
     end
   end
 
-  defp log_valid_user_in() do
-    HTTPoison.post!("localhost:4000/api/v1/logged-in", "", Authorization: "Bearer #{AuthHelper.valid_jwt()}")
-    AuthHelper.valid_jwt_sub()
-  end
-
-  defp create_visualization(table_name \\ "table_name") do
+  defp create_visualization(table_name) do
     {:ok, owner} = Users.create_or_update("me|you", %{email: "bob@example.com"})
 
     {:ok, visualization} =
