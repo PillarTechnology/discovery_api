@@ -1,6 +1,12 @@
 use Mix.Config
 
 redis_host = System.get_env("REDIS_HOST")
+redis_password = System.get_env("REDIS_PASSWORD", nil)
+all_redis_args = [host: redis_host, password: redis_password]
+redix_args = Enum.filter(all_redis_args, fn
+	{_, nil} -> false
+	_ -> true
+end)
 kafka_brokers = System.get_env("KAFKA_BROKERS")
 
 endpoint =
@@ -58,12 +64,10 @@ config :discovery_api,
   user_info_endpoint: System.get_env("AUTH_USER_INFO_ENDPOINT")
 
 config :redix,
-  host: System.get_env("REDIS_HOST")
+  args: redix_args
 
 config :smart_city_registry,
-  redis: [
-    host: System.get_env("REDIS_HOST")
-  ]
+  redis: redix_args
 
 config :prestige,
   base_url: System.get_env("PRESTO_URL"),

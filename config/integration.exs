@@ -1,6 +1,7 @@
 use Mix.Config
 aws_region = "us-west-2"
 host = "localhost"
+redis_args = [host: host]
 endpoints = [{to_charlist(host), 9092}]
 
 config :discovery_api, DiscoveryApiWeb.Endpoint, url: [host: "data.integrationtests.example.com", port: 80]
@@ -21,12 +22,10 @@ config :discovery_api,
 config :discovery_api, DiscoveryApi.Auth.Auth0.Guardian, issuer: "https://smartcolumbusos-demo.auth0.com/"
 
 config :smart_city_registry,
-  redis: [
-    host: host
-  ]
+  redis: redis_args
 
 config :redix,
-  host: host
+  args: redis_args
 
 config :phoenix,
   serve_endpoints: true,
