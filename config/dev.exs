@@ -27,7 +27,7 @@ config :mix_test_watch,
   clear: true
 
 config :redix,
-  host: "localhost"
+       args: [host: "localhost"]
 
 config :discovery_api,
   divo: "test/integration/docker-compose.yaml",

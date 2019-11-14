@@ -24,3 +24,6 @@ outputs
 terraform.tfstate.d
 *.plan
 .sobelow
+
+.idea/
+discovery_api.iml
