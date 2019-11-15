@@ -25,5 +25,6 @@ terraform.tfstate.d
 *.plan
 .sobelow
 
+# IntelliJ Idea
 .idea/
 discovery_api.iml
