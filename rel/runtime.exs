@@ -1,7 +1,7 @@
 use Mix.Config
 
 redis_host = System.get_env("REDIS_HOST")
-redis_password = System.get_env("REDIS_PASSWORD", "")
+redis_password = System.get_env("REDIS_PASSWORD")
 all_redis_args = [host: redis_host, password: redis_password]
 redix_args = Enum.filter(all_redis_args, fn
 	{_, nil} -> false
@@ -31,8 +31,8 @@ config :discovery_api,
   hosted_region: System.get_env("HOSTED_FILE_REGION")
 
 config :discovery_api, DiscoveryApi.Repo,
-  database: System.get_env("POSTGRES_NAME"),
-  username: System.get_env("POSTGRES_NAME"),
+  database: System.get_env("POSTGRES_DBNAME"),
+  username: System.get_env("POSTGRES_USER"),
   password: System.get_env("POSTGRES_PASSWORD"),
   hostname: System.get_env("POSTGRES_HOST"),
   port: System.get_env("POSTGRES_PORT")
