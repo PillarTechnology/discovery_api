@@ -71,9 +71,7 @@ config :redix,
 config :smart_city_registry,
   redis: redix_args
 
-config :prestige,
-  base_url: System.get_env("PRESTO_URL"),
-  log_level: :warn
+config :prestige, :session_opts, url: System.get_env("PRESTO_URL")
 
 config :paddle, Paddle,
   host: System.get_env("LDAP_HOST"),
